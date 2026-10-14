@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FCAPS / Laboratorio de rede</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+:root { --ink:#242828; --muted:#606968; --line:#dce2e0; --paper:#f6f8f7; --green:#087f70; --red:#c34344; --gold:#b07814; --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif; }
+* { box-sizing:border-box; }
+body { margin:0; color:var(--ink); background:var(--paper); font-family:var(--sans); font-size:14px; letter-spacing:0; }
+button,input { font:inherit; }
+button { cursor:pointer; }
+button:disabled { cursor:not-allowed; opacity:.55; }
+header { background:#fff; border-bottom:1px solid var(--line); padding:18px 28px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.brand { display:flex; gap:14px; align-items:center; }
+.brand-mark { width:34px; height:34px; background:var(--ink); color:#fff; display:grid; place-items:center; font:500 16px var(--mono); border-radius:4px; }
+h1 { font-size:20px; margin:0; font-weight:600; }
+.eyebrow { font:11px var(--mono); text-transform:uppercase; color:var(--muted); margin-top:3px; }
+.connection { display:flex; align-items:center; gap:8px; font-size:12px; }
+.dot { width:7px; height:7px; border-radius:50%; background:var(--green); flex-shrink:0; }
+.offline .dot { background:var(--red); }
+main { max-width:1480px; margin:auto; padding:24px 28px; }
+.controls { display:flex; align-items:end; flex-wrap:wrap; gap:20px; padding-bottom:22px; border-bottom:1px solid var(--line); }
+label,.field-label { display:block; font-size:12px; color:var(--muted); margin-bottom:7px; }
+input[type=number] { width:90px; height:38px; padding:0 10px; border:1px solid #bdc8c4; border-radius:4px; background:#fff; color:var(--ink); }
+.segmented { display:flex; height:38px; border:1px solid #bdc8c4; border-radius:4px; overflow:hidden; background:#fff; }
+.segmented label { margin:0; cursor:pointer; padding:9px 14px; color:var(--muted); display:flex; align-items:center; gap:7px; }
+.segmented label:has(input:checked) { color:var(--ink); background:#e5eeea; }
+.segmented input { accent-color:var(--green); margin:0; }
+.start { border:0; border-radius:4px; height:38px; padding:0 20px; background:var(--green); color:#fff; font-weight:600; }
+.stop { border:1px solid var(--red); border-radius:4px; height:38px; padding:0 16px; background:#fff; color:var(--red); font-weight:600; }
+.run-info { margin-left:auto; font:12px var(--mono); color:var(--muted); padding-bottom:10px; }
+.status-bar { display:flex; gap:12px; align-items:center; padding:18px 0 12px; }
+.status { font:11px var(--mono); text-transform:uppercase; padding:5px 8px; border:1px solid #bdc8c4; border-radius:3px; flex-shrink:0; }
+.status.running { color:var(--green); border-color:var(--green); }
+.status.error { color:var(--red); border-color:var(--red); }
+#stage { overflow-wrap:anywhere; }
+.progress { height:3px; background:var(--line); }
+.progress span { display:block; width:0; height:100%; background:var(--green); transition:width .4s; }
+.workspace { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr); gap:28px; padding:22px 0; border-bottom:1px solid var(--line); }
+.section-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+h2 { font-size:15px; font-weight:600; margin:0; }
+.tag { font:11px var(--mono); color:var(--muted); }
+.topology { width:100%; aspect-ratio:1.75; max-height:400px; position:relative; background-color:#fff; background-image:radial-gradient(#dce2e0 1px,transparent 1px); background-size:18px 18px; border:1px solid var(--line); border-radius:4px; overflow:hidden; }
+canvas { display:block; width:100%; height:100%; }
+.legend { display:flex; gap:16px; flex-wrap:wrap; font-size:11px; color:var(--muted); margin-top:12px; }
+.legend span { display:flex; align-items:center; gap:6px; }
+.swatch { width:18px; height:3px; background:var(--green); }
+.swatch.red { background:var(--red); }
+.swatch.gold { background:var(--gold); }
+.route-state { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:18px 0 0; }
+.route-state dt { font:11px var(--mono); color:var(--muted); margin-bottom:6px; }
+.route-state dd { margin:0; font:12px var(--mono); overflow-wrap:anywhere; line-height:1.7; }
+.live { min-width:0; }
+.event-list { height:360px; overflow-y:auto; border-top:1px solid var(--line); border-bottom:1px solid var(--line); scrollbar-width:thin; }
+.empty { color:var(--muted); padding:28px 0; font-size:13px; }
+.event { display:grid; grid-template-columns:62px minmax(0,1fr); padding:11px 0; border-bottom:1px solid var(--line); gap:10px; }
+.event time { font:10px var(--mono); color:var(--muted); padding-top:2px; }
+.event-kind { font:10px var(--mono); color:var(--green); text-transform:uppercase; margin-bottom:4px; }
+.event pre { margin:0; font:11px/1.65 var(--mono); white-space:pre-wrap; overflow-wrap:anywhere; max-height:170px; overflow:auto; }
+.metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); padding:20px 0; gap:20px; border-bottom:1px solid var(--line); }
+.metric { border-right:1px solid var(--line); padding-right:12px; }
+.metric:last-child { border:0; }
+.metric-label { font-size:12px; color:var(--muted); margin-bottom:6px; }
+.metric-value { font:500 25px var(--mono); }
+.metric-detail { font-size:11px; color:var(--muted); margin-top:5px; overflow-wrap:anywhere; }
+.results { padding:22px 0; }
+.table-scroll { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; text-align:left; white-space:nowrap; font-size:12px; }
+th { color:var(--muted); font-weight:500; font-size:11px; padding:12px 10px; border-bottom:1px solid #bdc8c4; }
+td { padding:12px 10px; border-bottom:1px solid var(--line); font-family:var(--mono); font-size:11px; }
+.ok { color:var(--green); } .fail { color:var(--red); }
+.error-box { border-left:3px solid var(--red); background:#fceeee; padding:14px; margin-top:16px; }
+.error-box pre { white-space:pre-wrap; overflow-wrap:anywhere; font:12px/1.6 var(--mono); margin:0; }
+[hidden] { display:none!important; }
+footer { font:11px/1.7 var(--mono); color:var(--muted); padding-top:4px; overflow-wrap:anywhere; }
+@media(max-width:900px) { .workspace { grid-template-columns:1fr; } .event-list { height:250px; } .run-info { margin-left:0; } }
+@media(max-width:520px) { header { padding:16px; align-items:start; } main { padding:16px; } h1 { font-size:17px; } .brand { gap:9px; } .connection { font-size:10px; } .controls { gap:14px; } .segmented label { padding:9px 10px; } .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; } .metric:nth-child(2) { border:0; } .metric-value { font-size:22px; } .route-state { grid-template-columns:1fr; } .topology { aspect-ratio:1.25; } .tag { font-size:10px; } }
+@media(prefers-reduced-motion:reduce) { * { transition:none!important; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="brand-mark" aria-hidden="true">F/</div><div><h1>Laboratorio FCAPS</h1><div class="eyebrow">Mininet / Fault Management</div></div></div>
+  <div class="connection" id="connection"><span class="dot"></span><span id="connection-text">Conectando</span></div>
+</header>
+<main>
+  <form class="controls" id="controls">
+    <div><label for="repetitions">Repeticoes</label><input id="repetitions" type="number" min="1" max="20" value="3" required></div>
+    <div><span class="field-label" id="executor-label">Executores</span><div class="segmented" role="group" aria-labelledby="executor-label"><label><input type="radio" name="executor" value="ambos" checked>Agente + script</label><label><input type="radio" name="executor" value="script">So script</label></div></div>
+    <button class="start" id="start" type="submit">Iniciar experimento</button>
+    <button class="stop" id="stop" type="button" disabled>Parar experimento</button>
+    <div class="run-info" id="run-info">3 cenarios / 18 execucoes</div>
+  </form>
+  <div class="status-bar" role="status"><span class="status" id="status">Pronto</span><span id="stage">Aguardando execucao</span></div>
+  <div class="progress" role="progressbar" aria-label="Testes concluidos" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="progress"></span></div>
+  <div class="error-box" id="error-box" role="alert" hidden><pre id="error"></pre></div>
+  <div class="workspace">
+    <section>
+      <div class="section-head"><h2>Topologia de rede</h2><span class="tag" id="scenario">T01 30% / T02 80% / T03 0%</span></div>
+      <div class="topology"><canvas id="network" aria-label="Topologia: h1 conectado a r1, r1 a r2 e r3, r3 a r2, r2 a h2" role="img"></canvas></div>
+      <div class="legend"><span><i class="swatch"></i>Ida</span><span><i class="swatch gold"></i>Volta</span><span><i class="swatch red"></i>Enlace com perda</span><span>Fluxo ilustrativo</span></div>
+      <dl class="route-state"><div><dt>IDA / h1 para h2</dt><dd id="route-out">Aguardando verificacao</dd></div><div><dt>VOLTA / h2 para h1</dt><dd id="route-back">Aguardando verificacao</dd></div></dl>
+    </section>
+    <section class="live"><div class="section-head"><h2>Registro ao vivo</h2><label style="margin:0"><input id="follow" type="checkbox" checked> Acompanhar</label></div><div class="event-list" id="events"><div class="empty">Nenhum evento recebido.</div></div></section>
+  </div>
+  <section class="metrics" aria-label="Metricas da rodada">
+    <div class="metric"><div class="metric-label">Testes concluidos</div><div class="metric-value" id="completed">0 / 18</div><div class="metric-detail" id="current-test">Nenhum teste ativo</div></div>
+    <div class="metric"><div class="metric-label">Sucessos verificados</div><div class="metric-value" id="successes">0</div><div class="metric-detail" id="ping">Ping final: pendente</div></div>
+    <div class="metric"><div class="metric-label">Tokens / execucao</div><div class="metric-value" id="tokens">--</div><div class="metric-detail" id="total-tokens">Acumulado: 0</div></div>
+    <div class="metric"><div class="metric-label">Tempo / execucao</div><div class="metric-value" id="elapsed">--</div><div class="metric-detail" id="commands">Comandos: pendente</div></div>
+  </section>
+  <section class="results"><div class="section-head"><h2>Resultados da rodada</h2><span class="tag" id="result-count">0 registros</span></div><div class="table-scroll"><table><thead><tr><th>Teste</th><th>Executor</th><th>Rep.</th><th>Perda</th><th>Resultado</th><th>Ping</th><th>TTR (s)</th><th>Comandos</th><th>Tokens</th></tr></thead><tbody id="results"><tr><td colspan="9">Aguardando resultados verificados.</td></tr></tbody></table></div></section>
+  <footer id="output">Resultados ainda nao gravados.</footer>
+</main>
+<script>
+'use strict';
+const element = id => document.getElementById(id);
+let snapshot = null;
+let token = '';
+let connected = false;
+let lastEvents = '';
+let lastResults = '';
+let currentRunKey = '';
+let testStarted = null;
+const format = value => typeof value === 'number' ? value.toLocaleString('pt-BR') : value ?? '--';
+function planned() {
+  const count = Number(element('repetitions').value) || 1;
+  const total = count * (document.querySelector('input[name=executor]:checked').value === 'script' ? 3 : 6);
+  element('run-info').textContent = `3 cenarios / ${total} execucoes`;
+  if (!snapshot?.dados) element('completed').textContent = `0 / ${total}`;
+}
+element('controls').addEventListener('change', planned);
+function error(text) {
+  element('error-box').hidden = !text;
+  element('error').textContent = text;
+}
+function render(state) {
+  snapshot = state;
+  const stopping = state.status === 'parando';
+  const running = state.status === 'executando' || stopping;
+  document.querySelectorAll('#controls input').forEach(input => input.disabled = running);
+  element('start').disabled = running || !connected;
+  element('start').textContent = running ? 'Experimento em andamento' : 'Iniciar experimento';
+  element('stop').disabled = !connected || state.status !== 'executando';
+  element('stop').textContent = stopping ? 'Parando...' : 'Parar experimento';
+  const labels = {pronto:'Pronto', executando:'Executando', parando:'Parando', interrompido:'Interrompido', concluido:'Concluido', erro:'Erro'};
+  element('status').textContent = labels[state.status] || state.status;
+  element('status').className = `status ${running ? 'running' : state.status === 'erro' ? 'error' : ''}`;
+  error(state.erro);
+  const data = state.dados;
+  if (!data) {
+    currentRunKey = '';
+    testStarted = null;
+    element('stage').textContent = stopping ? 'Encerrando experimento' : running ? 'Preparando ambiente Linux' : state.status === 'interrompido' ? 'Rodada interrompida' : 'Aguardando execucao';
+    element('scenario').textContent = 'T01 30% / T02 80% / T03 0%';
+    element('route-out').textContent = element('route-back').textContent = 'Aguardando verificacao';
+    element('completed').textContent = `0 / ${Number(element('repetitions').value) * (document.querySelector('input[name=executor]:checked').value === 'script' ? 3 : 6)}`;
+    element('successes').textContent = '0';
+    element('tokens').textContent = '--';
+    element('elapsed').textContent = '--';
+    element('total-tokens').textContent = 'Acumulado: 0';
+    element('current-test').textContent = 'Nenhum teste ativo';
+    element('ping').textContent = 'Ping final: pendente';
+    element('commands').textContent = 'Comandos: pendente';
+    element('progress').style.width = '0%';
+    element('progress').parentElement.setAttribute('aria-valuenow', 0);
+    element('events').replaceChildren(Object.assign(document.createElement('div'), {className:'empty', textContent:'Nenhum evento recebido.'}));
+    element('results').innerHTML = '<tr><td colspan="9">Aguardando resultados verificados.</td></tr>';
+    element('result-count').textContent = '0 registros';
+    element('output').textContent = 'Resultados ainda nao gravados.';
+    lastEvents = lastResults = '';
+    return;
+  }
+  const current = data.estado;
+  const key = `${current.teste}/${current.executor}/${current.repeticao}`;
+  if (key !== currentRunKey) { currentRunKey = key; testStarted = Date.now(); }
+  element('stage').textContent = stopping ? 'Encerrando experimento' : current.etapa;
+  element('scenario').textContent = `${current.teste} / ${current.executor} / R${current.repeticao}`;
+  const verified = data.rotas_confirmadas;
+  element('route-out').textContent = (current.ida_r3 ? 'h1 > r1 > r3 > r2 > h2' : 'h1 > r1 > r2 > h2') + (verified ? ' / verificada' : ' / verificacao pendente');
+  element('route-back').textContent = (current.volta_r3 ? 'h2 > r2 > r3 > r1 > h1' : 'h2 > r2 > r1 > h1') + (verified ? ' / verificada' : ' / verificacao pendente');
+  element('completed').textContent = `${data.concluidos} / ${data.total}`;
+  element('successes').textContent = data.sucessos;
+  element('tokens').textContent = format(data.tokens);
+  element('total-tokens').textContent = `Acumulado: ${format(data.tokens_total)}`;
+  element('tokens').title = data.uso_tokens;
+  element('current-test').textContent = `${current.teste} / ${current.executor} / repeticao ${current.repeticao}`;
+  const progress = data.total ? Math.round(data.concluidos / data.total * 100) : 0;
+  element('progress').style.width = `${progress}%`;
+  element('progress').parentElement.setAttribute('aria-valuenow', progress);
+  const result = data.resultados.findLast(row => `${row.teste}/${row.executor}/${row.repeticao}` === key);
+  element('ping').textContent = result ? `Ping final: ${result.pings_recebidos}/30` : 'Ping final: pendente';
+  element('commands').textContent = result ? `Comandos: ${result.comandos}` : 'Comandos: pendente';
+  element('output').textContent = data.pasta ? `Resultados: ${data.pasta}` : 'Resultados parciais sendo gravados em resultados/.';
+  const eventsKey = JSON.stringify(data.eventos);
+  if (eventsKey !== lastEvents) {
+    lastEvents = eventsKey;
+    const list = element('events');
+    const previousScroll = list.scrollTop;
+    list.replaceChildren();
+    for (const event of data.eventos) {
+      const article = document.createElement('article'); article.className = 'event';
+      const time = document.createElement('time'); time.textContent = event.hora;
+      const body = document.createElement('div');
+      const kind = document.createElement('div'); kind.className = 'event-kind'; kind.textContent = event.tipo;
+      const text = document.createElement('pre'); text.textContent = event.texto;
+      body.append(kind, text); article.append(time, body); list.append(article);
+    }
+    list.scrollTop = element('follow').checked ? list.scrollHeight : previousScroll;
+  }
+  const resultsKey = JSON.stringify(data.resultados);
+  if (resultsKey !== lastResults) {
+    lastResults = resultsKey;
+    if (data.resultados.length) element('results').replaceChildren();
+    for (const row of data.resultados) {
+      const tr = document.createElement('tr');
+      const values = [row.teste, row.executor, row.repeticao, `${row.perda}%`, row.sucesso ? 'SUCESSO' : 'FALHA', `${row.pings_recebidos}/30`, row.ttr_segundos, row.comandos, row.tokens === '' ? '--' : format(row.tokens)];
+      values.forEach((value, index) => { const td = document.createElement('td'); td.textContent = value; if (index === 4) td.className = row.sucesso ? 'ok' : 'fail'; tr.append(td); });
+      element('results').append(tr);
+    }
+    element('result-count').textContent = `${data.resultados.length} registros`;
+  }
+}
+async function poll() {
+  try {
+    const response = await fetch('/api/estado');
+    if (!response.ok) throw new Error('Servidor indisponivel');
+    const state = await response.json();
+    connected = true; token = state.token;
+    element('connection').classList.remove('offline');
+    element('connection-text').textContent = 'Local / conectado';
+    render(state);
+  } catch (failure) {
+    connected = false;
+    element('connection').classList.add('offline');
+    element('connection-text').textContent = 'Desconectado';
+    element('start').disabled = true;
+    element('stop').disabled = true;
+  } finally { setTimeout(poll, 700); }
+}
+element('controls').addEventListener('submit', async event => {
+  event.preventDefault();
+  element('start').disabled = true;
+  try {
+    const response = await fetch('/api/iniciar', {method:'POST', headers:{'Content-Type':'application/json', 'X-FCAPS-Token':token}, body:JSON.stringify({repeticoes:Number(element('repetitions').value), so_script:document.querySelector('input[name=executor]:checked').value === 'script'})});
+    const answer = await response.json();
+    if (!response.ok) throw new Error(answer.erro);
+    render({status:'executando', dados:null, erro:''});
+  } catch (failure) { error(failure.message); element('start').disabled = !connected; }
+});
+element('stop').addEventListener('click', async () => {
+  element('stop').disabled = true;
+  try {
+    const response = await fetch('/api/parar', {method:'POST', headers:{'X-FCAPS-Token':token}});
+    const answer = await response.json();
+    if (!response.ok) throw new Error(answer.erro);
+    render({...snapshot, status:'parando'});
+  } catch (failure) { error(failure.message); element('stop').disabled = !connected || snapshot?.status !== 'executando'; }
+});
+setInterval(() => {
+  const data = snapshot?.dados;
+  if (!data) return;
+  const current = data.estado;
+  const row = data.resultados.findLast(result => `${result.teste}/${result.executor}/${result.repeticao}` === currentRunKey);
+  element('elapsed').textContent = row ? `${row.ttr_segundos.toFixed(1)} s` : snapshot.status === 'executando' && testStarted ? `${Math.floor((Date.now() - testStarted) / 1000)} s` : '--';
+  element('elapsed').title = row ? 'TTR medido pelo experimento' : 'Tempo de acompanhamento do teste; TTR disponivel ao concluir';
+}, 500);
+const canvas = element('network');
+const context = canvas.getContext('2d');
+let width = 0, height = 0;
+new ResizeObserver(() => {
+  const bounds = canvas.getBoundingClientRect(); width = bounds.width; height = bounds.height;
+  canvas.width = Math.round(width * devicePixelRatio); canvas.height = Math.round(height * devicePixelRatio);
+  context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}).observe(canvas);
+const nodes = {h1:[.1,.4], r1:[.32,.4], r2:[.68,.4], h2:[.9,.4], r3:[.5,.77]};
+const edges = [['h1','r1'],['r1','r2'],['r2','h2'],['r1','r3'],['r3','r2']];
+const positions = name => [nodes[name][0] * width, nodes[name][1] * height];
+function packet(path, fraction, color) {
+  const position = fraction * (path.length - 1);
+  const segment = Math.min(Math.floor(position), path.length - 2);
+  const part = position - segment;
+  const start = positions(path[segment]), end = positions(path[segment + 1]);
+  context.beginPath(); context.arc(start[0] + (end[0]-start[0])*part, start[1] + (end[1]-start[1])*part + (color === '#087f70' ? -5 : 5), 3, 0, Math.PI*2); context.fillStyle = color; context.fill();
+}
+function draw(time) {
+  context.clearRect(0,0,width,height);
+  const data = snapshot?.dados;
+  const current = data?.estado;
+  const active = snapshot?.status === 'executando' && data?.falha_ativa;
+  const loss = data?.falha_ativa ? current.perda : 0;
+  const out = current?.ida_r3;
+  const back = current?.volta_r3;
+  for (const [source,target] of edges) {
+    const start = positions(source), end = positions(target);
+    const main = source === 'r1' && target === 'r2';
+    const alternative = source === 'r1' && target === 'r3' || source === 'r3';
+    context.beginPath(); context.moveTo(...start); context.lineTo(...end);
+    context.strokeStyle = main && loss ? '#c34344' : alternative && (out || back) ? '#087f70' : '#b9c7c2';
+    context.lineWidth = main && loss || alternative && (out || back) ? 3 : 2;
+    context.setLineDash(alternative && !out && !back ? [5,5] : []); context.stroke(); context.setLineDash([]);
+  }
+  context.textAlign = 'center'; context.font = '11px "IBM Plex Mono", monospace';
+  context.fillStyle = loss ? '#c34344' : '#606968';
+  context.fillText(loss ? `PERDA ${loss}%` : data ? (data.falha_ativa ? 'SEM FALHA' : 'ENLACE PRINCIPAL') : 'r1 - r2', width*.5,height*.4-25);
+  if (active && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const outgoing = out ? ['h1','r1','r3','r2','h2'] : ['h1','r1','r2','h2'];
+    const returning = back ? ['h2','r2','r3','r1','h1'] : ['h2','r2','r1','h1'];
+    for (const offset of [0,.33,.66]) { packet(outgoing, (time/4500+offset)%1, '#087f70'); packet(returning, (time/4500+offset+.15)%1, '#b07814'); }
+  }
+  const size = width < 420 ? 28 : 36;
+  for (const [name] of Object.entries(nodes)) {
+    const [horizontal, vertical] = positions(name);
+    context.fillStyle = '#fff'; context.strokeStyle = name.startsWith('r') ? '#242828' : '#087f70'; context.lineWidth = 2;
+    context.beginPath(); context.roundRect(horizontal-size/2,vertical-size/2,size,size,4); context.fill(); context.stroke();
+    context.fillStyle = '#242828'; context.font = '500 13px "IBM Plex Mono", monospace'; context.fillText(name,horizontal,vertical+4);
+    context.font = '10px "IBM Plex Mono", monospace'; context.fillStyle = '#606968';
+    context.fillText(name === 'h1' ? '10.0.1.1' : name === 'h2' ? '10.0.2.1' : 'ROTEADOR',horizontal,vertical+size/2+18);
+  }
+  requestAnimationFrame(draw);
+}
+planned(); poll(); requestAnimationFrame(draw);
+</script>
+</body>
+</html>
