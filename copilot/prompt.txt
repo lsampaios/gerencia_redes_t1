@@ -1,0 +1,1 @@
+Há perda de pacotes entre h1 e h2 numa rede Mininet. Investigue, descubra a causa e restabeleça a comunicação.
