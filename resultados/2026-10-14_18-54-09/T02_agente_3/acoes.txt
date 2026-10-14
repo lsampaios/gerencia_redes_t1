@@ -1,0 +1,76 @@
+$ rede h1 ping -c 10 10.0.2.1
+PING 10.0.2.1 (10.0.2.1) 56(84) bytes of data.
+
+--- 10.0.2.1 ping statistics ---
+10 packets transmitted, 0 received, 100% packet loss, time 9264ms
+<shellId: 0 completed with exit code 1>
+
+$ rede r1 ip route
+10.0.1.0/24 dev r1-h1 proto kernel scope link src 10.0.1.254 
+10.0.2.0/24 via 10.0.12.2 dev r1-r2 
+10.0.12.0/24 dev r1-r2 proto kernel scope link src 10.0.12.1 
+10.0.13.0/24 dev r1-r3 proto kernel scope link src 10.0.13.1
+<shellId: 1 completed with exit code 0>
+
+$ rede r2 ip route
+10.0.1.0/24 via 10.0.12.1 dev r2-r1 
+10.0.2.0/24 dev r2-h2 proto kernel scope link src 10.0.2.254 
+10.0.12.0/24 dev r2-r1 proto kernel scope link src 10.0.12.2 
+10.0.23.0/24 dev r2-r3 proto kernel scope link src 10.0.23.2
+<shellId: 2 completed with exit code 0>
+
+$ rede r1 tc qdisc show
+qdisc noqueue 0: dev lo root refcnt 2 
+qdisc noqueue 0: dev r1-h1 root refcnt 2 
+qdisc netem 8039: dev r1-r2 root refcnt 9 limit 1000 loss 80% seed 12424683983701437692
+qdisc noqueue 0: dev r1-r3 root refcnt 2
+<shellId: 3 completed with exit code 0>
+
+AGENTE: A perda está configurada no enlace r1–r2, usado pelo caminho atual. Vou desviar as rotas de ida e volta pelo r3 e testar após cada alteração.
+
+$ rede r1 ip route replace 10.0.2.0/24 via 10.0.13.3
+
+<shellId: 4 completed with exit code 0>
+
+$ rede h1 ping -c 10 10.0.2.1
+PING 10.0.2.1 (10.0.2.1) 56(84) bytes of data.
+64 bytes from 10.0.2.1: icmp_seq=2 ttl=62 time=0.112 ms
+64 bytes from 10.0.2.1: icmp_seq=3 ttl=62 time=0.109 ms
+64 bytes from 10.0.2.1: icmp_seq=5 ttl=62 time=0.073 ms
+
+--- 10.0.2.1 ping statistics ---
+10 packets transmitted, 3 received, 70% packet loss, time 9228ms
+rtt min/avg/max/mdev = 0.073/0.098/0.112/0.017 ms
+<shellId: 5 completed with exit code 0>
+
+$ rede r2 ip route replace 10.0.1.0/24 via 10.0.23.3
+
+<shellId: 6 completed with exit code 0>
+
+$ rede h1 ping -c 10 10.0.2.1
+PING 10.0.2.1 (10.0.2.1) 56(84) bytes of data.
+64 bytes from 10.0.2.1: icmp_seq=1 ttl=61 time=0.075 ms
+64 bytes from 10.0.2.1: icmp_seq=2 ttl=61 time=0.053 ms
+64 bytes from 10.0.2.1: icmp_seq=3 ttl=61 time=0.053 ms
+64 bytes from 10.0.2.1: icmp_seq=4 ttl=61 time=0.056 ms
+64 bytes from 10.0.2.1: icmp_seq=5 ttl=61 time=0.055 ms
+64 bytes from 10.0.2.1: icmp_seq=6 ttl=61 time=0.154 ms
+64 bytes from 10.0.2.1: icmp_seq=7 ttl=61 time=0.059 ms
+64 bytes from 10.0.2.1: icmp_seq=8 ttl=61 time=0.049 ms
+64 bytes from 10.0.2.1: icmp_seq=9 ttl=61 time=0.055 ms
+64 bytes from 10.0.2.1: icmp_seq=10 ttl=61 time=0.068 ms
+
+--- 10.0.2.1 ping statistics ---
+10 packets transmitted, 10 received, 0% packet loss, time 9234ms
+rtt min/avg/max/mdev = 0.049/0.067/0.154/0.029 ms
+<shellId: 7 completed with exit code 0>
+
+AGENTE: A causa era a perda de 80% configurada no enlace r1–r2, usado nos dois sentidos da comunicação. Desviei a rota de h2 em r1 e a rota de retorno para h1 em r2 pelo r3:
+
+```text
+rede r1 ip route replace 10.0.2.0/24 via 10.0.13.3
+rede r2 ip route replace 10.0.1.0/24 via 10.0.23.3
+```
+
+O ping final recebeu 10 de 10 pacotes, com 0% de perda.
+

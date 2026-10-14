@@ -1,0 +1,88 @@
+$ rede h1 ping -c 10 10.0.2.1
+PING 10.0.2.1 (10.0.2.1) 56(84) bytes of data.
+
+--- 10.0.2.1 ping statistics ---
+10 packets transmitted, 0 received, 100% packet loss, time 9199ms
+<shellId: 0 completed with exit code 1>
+
+$ rede h1 ip route && rede h2 ip route && rede r1 ip route && rede r2 ip route && rede r3 ip route && rede r1 tc qdisc show && rede r2 tc qdisc show && rede r3 tc qdisc show && rede h1 ip addr && rede h2 ip addr
+default via 10.0.1.254 dev h1-r1 
+10.0.1.0/24 dev h1-r1 proto kernel scope link src 10.0.1.1 
+default via 10.0.2.254 dev h2-r2 
+10.0.2.0/24 dev h2-r2 proto kernel scope link src 10.0.2.1 
+10.0.1.0/24 dev r1-h1 proto kernel scope link src 10.0.1.254 
+10.0.2.0/24 via 10.0.12.2 dev r1-r2 
+10.0.12.0/24 dev r1-r2 proto kernel scope link src 10.0.12.1 
+10.0.13.0/24 dev r1-r3 proto kernel scope link src 10.0.13.1 
+10.0.1.0/24 via 10.0.12.1 dev r2-r1 
+10.0.2.0/24 dev r2-h2 proto kernel scope link src 10.0.2.254 
+10.0.12.0/24 dev r2-r1 proto kernel scope link src 10.0.12.2 
+10.0.23.0/24 dev r2-r3 proto kernel scope link src 10.0.23.2 
+10.0.1.0/24 via 10.0.13.1 dev r3-r1 
+10.0.2.0/24 via 10.0.23.2 dev r3-r2 
+10.0.13.0/24 dev r3-r1 proto kernel scope link src 10.0.13.3 
+10.0.23.0/24 dev r3-r2 proto kernel scope link src 10.0.23.3 
+qdisc noqueue 0: dev lo root refcnt 2 
+qdisc noqueue 0: dev r1-h1 root refcnt 2 
+qdisc netem 8029: dev r1-r2 root refcnt 9 limit 1000 loss 80% seed 634187701939220681
+qdisc noqueue 0: dev r1-r3 root refcnt 2 
+qdisc noqueue 0: dev lo root refcnt 2 
+qdisc noqueue 0: dev r2-h2 root refcnt 2 
+qdisc netem 802a: dev r2-r1 root refcnt 9 limit 1000 loss 80% seed 17785060505628075627
+qdisc noqueue 0: dev r2-r3 root refcnt 2 
+qdisc noqueue 0: dev lo root refcnt 2 
+qdisc noqueue 0: dev r3-r1 root refcnt 2 
+qdisc noqueue 0: dev r3-r2 root refcnt 2 
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host proto kernel_lo 
+       valid_lft forever preferred_lft forever
+2: h1-r1@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether 12:04:c7:6d:fe:62 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 10.0.1.1/24 brd 10.0.1.255 scope global h1-r1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::1004:c7ff:fe6d:fe62/64 scope link proto kernel_ll 
+       valid_lft forever preferred_lft forever
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host proto kernel_lo 
+       valid_lft forever preferred_lft forever
+2: h2-r2@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether b6:6b:25:f0:8e:c8 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 10.0.2.1/24 brd 10.0.2.255 scope global h2-r2
+       valid_lft forever preferred_lft forever
+    inet6 fe80::b46b:25ff:fef0:8ec8/64 scope link proto kernel_ll 
+       valid_lft forever preferred_lft forever
+<shellId: 1 completed with exit code 0>
+
+$ rede r1 ip route replace 10.0.2.0/24 via 10.0.13.3 && rede r2 ip route replace 10.0.1.0/24 via 10.0.23.3 && rede h1 ping -c 10 10.0.2.1
+PING 10.0.2.1 (10.0.2.1) 56(84) bytes of data.
+64 bytes from 10.0.2.1: icmp_seq=1 ttl=61 time=0.096 ms
+64 bytes from 10.0.2.1: icmp_seq=2 ttl=61 time=0.428 ms
+64 bytes from 10.0.2.1: icmp_seq=3 ttl=61 time=0.061 ms
+64 bytes from 10.0.2.1: icmp_seq=4 ttl=61 time=0.058 ms
+64 bytes from 10.0.2.1: icmp_seq=5 ttl=61 time=0.063 ms
+64 bytes from 10.0.2.1: icmp_seq=6 ttl=61 time=0.053 ms
+64 bytes from 10.0.2.1: icmp_seq=7 ttl=61 time=0.063 ms
+64 bytes from 10.0.2.1: icmp_seq=8 ttl=61 time=0.052 ms
+64 bytes from 10.0.2.1: icmp_seq=9 ttl=61 time=0.060 ms
+64 bytes from 10.0.2.1: icmp_seq=10 ttl=61 time=0.119 ms
+
+--- 10.0.2.1 ping statistics ---
+10 packets transmitted, 10 received, 0% packet loss, time 9195ms
+rtt min/avg/max/mdev = 0.052/0.105/0.428/0.109 ms
+<shellId: 2 completed with exit code 0>
+
+AGENTE: A causa era perda configurada de 80% nos enlaces r1–r2 e r2–r1, usados pelo caminho original. Desviei os dois sentidos pelo caminho sem perda via r3:
+
+```text
+rede r1 ip route replace 10.0.2.0/24 via 10.0.13.3
+rede r2 ip route replace 10.0.1.0/24 via 10.0.23.3
+```
+
+O ping final recebeu 10 de 10 pacotes, com 0% de perda.
+

@@ -1,0 +1,24 @@
+Ping: 30/30
+Falha mantida: True
+Desvio por r3: True
+Rotas alteradas: False
+Codigo de saida: 0
+
+r1:
+10.0.1.0/24 dev r1-h1 proto kernel scope link src 10.0.1.254 
+10.0.2.0/24 via 10.0.12.2 dev r1-r2 
+10.0.12.0/24 dev r1-r2 proto kernel scope link src 10.0.12.1 
+10.0.13.0/24 dev r1-r3 proto kernel scope link src 10.0.13.1 
+
+r2:
+10.0.1.0/24 via 10.0.12.1 dev r2-r1 
+10.0.2.0/24 dev r2-h2 proto kernel scope link src 10.0.2.254 
+10.0.12.0/24 dev r2-r1 proto kernel scope link src 10.0.12.2 
+10.0.23.0/24 dev r2-r3 proto kernel scope link src 10.0.23.2 
+
+r3:
+10.0.1.0/24 via 10.0.13.1 dev r3-r1 
+10.0.2.0/24 via 10.0.23.2 dev r3-r2 
+10.0.13.0/24 dev r3-r1 proto kernel scope link src 10.0.13.3 
+10.0.23.0/24 dev r3-r2 proto kernel scope link src 10.0.23.3 
+

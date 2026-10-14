@@ -1,0 +1,33 @@
+$ rede h1 ping -c 10 10.0.2.1
+PING 10.0.2.1 (10.0.2.1) 56(84) bytes of data.
+64 bytes from 10.0.2.1: icmp_seq=2 ttl=62 time=0.279 ms
+64 bytes from 10.0.2.1: icmp_seq=3 ttl=62 time=0.057 ms
+64 bytes from 10.0.2.1: icmp_seq=5 ttl=62 time=0.067 ms
+64 bytes from 10.0.2.1: icmp_seq=7 ttl=62 time=0.060 ms
+
+--- 10.0.2.1 ping statistics ---
+10 packets transmitted, 4 received, 60% packet loss, time 9228ms
+rtt min/avg/max/mdev = 0.057/0.115/0.279/0.094 ms
+
+$ rede r1 ip route replace 10.0.2.0/24 via 10.0.13.3
+
+$ rede r2 ip route replace 10.0.1.0/24 via 10.0.23.3
+
+$ rede h1 ping -c 10 10.0.2.1
+PING 10.0.2.1 (10.0.2.1) 56(84) bytes of data.
+64 bytes from 10.0.2.1: icmp_seq=1 ttl=61 time=0.085 ms
+64 bytes from 10.0.2.1: icmp_seq=2 ttl=61 time=0.225 ms
+64 bytes from 10.0.2.1: icmp_seq=3 ttl=61 time=0.062 ms
+64 bytes from 10.0.2.1: icmp_seq=4 ttl=61 time=0.230 ms
+64 bytes from 10.0.2.1: icmp_seq=5 ttl=61 time=0.063 ms
+64 bytes from 10.0.2.1: icmp_seq=6 ttl=61 time=0.088 ms
+64 bytes from 10.0.2.1: icmp_seq=7 ttl=61 time=0.134 ms
+64 bytes from 10.0.2.1: icmp_seq=8 ttl=61 time=0.095 ms
+64 bytes from 10.0.2.1: icmp_seq=9 ttl=61 time=0.095 ms
+64 bytes from 10.0.2.1: icmp_seq=10 ttl=61 time=0.126 ms
+
+--- 10.0.2.1 ping statistics ---
+10 packets transmitted, 10 received, 0% packet loss, time 9312ms
+rtt min/avg/max/mdev = 0.062/0.120/0.230/0.057 ms
+
+Perda depois do desvio: 0.0%

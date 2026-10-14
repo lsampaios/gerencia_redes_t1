@@ -1,0 +1,20 @@
+$ rede h1 ping -c 10 10.0.2.1
+PING 10.0.2.1 (10.0.2.1) 56(84) bytes of data.
+64 bytes from 10.0.2.1: icmp_seq=1 ttl=62 time=0.044 ms
+64 bytes from 10.0.2.1: icmp_seq=2 ttl=62 time=0.050 ms
+64 bytes from 10.0.2.1: icmp_seq=3 ttl=62 time=0.081 ms
+64 bytes from 10.0.2.1: icmp_seq=4 ttl=62 time=0.119 ms
+64 bytes from 10.0.2.1: icmp_seq=5 ttl=62 time=0.050 ms
+64 bytes from 10.0.2.1: icmp_seq=6 ttl=62 time=0.496 ms
+64 bytes from 10.0.2.1: icmp_seq=7 ttl=62 time=0.050 ms
+64 bytes from 10.0.2.1: icmp_seq=8 ttl=62 time=0.049 ms
+64 bytes from 10.0.2.1: icmp_seq=9 ttl=62 time=0.049 ms
+64 bytes from 10.0.2.1: icmp_seq=10 ttl=62 time=0.050 ms
+
+--- 10.0.2.1 ping statistics ---
+10 packets transmitted, 10 received, 0% packet loss, time 9224ms
+rtt min/avg/max/mdev = 0.044/0.103/0.496/0.132 ms
+<shellId: 0 completed with exit code 0>
+
+AGENTE: O ping entre h1 e h2 não apresentou perda: 10 pacotes enviados, 10 recebidos (0%). Conforme as instruções, não alterei nenhuma rota.
+

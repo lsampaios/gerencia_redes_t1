@@ -1,0 +1,7 @@
+teste  executor  sucessos  TTR medio(s)  comandos medios  tokens medios
+T01    agente    3/3       118.0         10               64300
+T01    script    3/3       20.0          4                -
+T02    agente    3/3       77.0          7.3              48349
+T02    script    3/3       26.1          4                -
+T03    agente    3/3       26.0          1.7              13735
+T03    script    3/3       9.4           1                -

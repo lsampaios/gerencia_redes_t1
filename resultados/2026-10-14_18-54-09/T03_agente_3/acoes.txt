@@ -1,0 +1,60 @@
+$ pwd && ls -la
+/home/vboxuser/Documents/UFRGS/Gerencia_Redes/Trabalho_1/Trabalho/laboratorio_fcaps/copilot
+total 16
+drwxrwxr-x 2 vboxuser vboxuser 4096 Oct 11 13:50 .
+drwxrwxr-x 6 vboxuser vboxuser 4096 Oct 14 18:12 ..
+-rw-rw-r-- 1 vboxuser vboxuser 1123 Oct 12 11:42 AGENTS.md
+-rw-rw-r-- 1 vboxuser vboxuser  115 Oct 11 14:28 prompt.txt
+<shellId: 0 completed with exit code 0>
+
+$ cat AGENTS.md && cat prompt.txt
+# Instruções do agente
+
+Você administra uma rede Mininet com os computadores h1 (10.0.1.1) e h2 (10.0.2.1)
+e os roteadores r1, r2 e r3.
+
+## Comandos que você pode usar
+
+Use apenas o comando `rede`, um comando por vez:
+
+    rede <no> ping -c <N> <IP>          (N de 1 a 50)
+    rede <no> traceroute -n <IP>
+    rede <no> ip addr
+    rede <no> ip route
+    rede <no> tc qdisc show
+    rede <r1|r2> ip route replace <rede/prefixo> via <IP>
+
+## Regras
+
+- Meça a perda antes de mudar qualquer coisa.
+- Se não houver perda, não altere nada.
+- Não tente remover a falha do enlace. Desvie o tráfego por um caminho que funcione.
+- Lembre que a comunicação tem ida e volta.
+- Depois de mudar uma rota, teste de novo com ping.
+- Mude somente a rota de h2 em r1 ou a rota de h1 em r2.
+- Seja conciso. Evite repetir consultas sem motivo ou usar traceroute quando as rotas e a perda configurada ja explicarem o problema.
+- Apos corrigir os dois sentidos, faca um ping final. Se passar, encerre sem mais consultas.
+- No final, diga em português a causa, os comandos que você usou para corrigir e o resultado do último ping.
+Há perda de pacotes entre h1 e h2 numa rede Mininet. Investigue, descubra a causa e restabeleça a comunicação.
+<shellId: 1 completed with exit code 0>
+
+$ rede h1 ping -c 10 10.0.2.1
+PING 10.0.2.1 (10.0.2.1) 56(84) bytes of data.
+64 bytes from 10.0.2.1: icmp_seq=1 ttl=62 time=0.043 ms
+64 bytes from 10.0.2.1: icmp_seq=2 ttl=62 time=0.054 ms
+64 bytes from 10.0.2.1: icmp_seq=3 ttl=62 time=0.045 ms
+64 bytes from 10.0.2.1: icmp_seq=4 ttl=62 time=0.048 ms
+64 bytes from 10.0.2.1: icmp_seq=5 ttl=62 time=0.051 ms
+64 bytes from 10.0.2.1: icmp_seq=6 ttl=62 time=0.049 ms
+64 bytes from 10.0.2.1: icmp_seq=7 ttl=62 time=0.050 ms
+64 bytes from 10.0.2.1: icmp_seq=8 ttl=62 time=0.250 ms
+64 bytes from 10.0.2.1: icmp_seq=9 ttl=62 time=0.050 ms
+64 bytes from 10.0.2.1: icmp_seq=10 ttl=62 time=0.072 ms
+
+--- 10.0.2.1 ping statistics ---
+10 packets transmitted, 10 received, 0% packet loss, time 9252ms
+rtt min/avg/max/mdev = 0.043/0.071/0.250/0.060 ms
+<shellId: 2 completed with exit code 0>
+
+AGENTE: O ping inicial não apresentou perda: 10 pacotes enviados, 10 recebidos (0%). Como não havia perda, não alterei nenhuma rota.
+

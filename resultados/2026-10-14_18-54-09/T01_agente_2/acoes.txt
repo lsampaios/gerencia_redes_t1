@@ -1,0 +1,111 @@
+$ rede h1 ping -c 10 10.0.2.1
+PING 10.0.2.1 (10.0.2.1) 56(84) bytes of data.
+64 bytes from 10.0.2.1: icmp_seq=2 ttl=62 time=0.099 ms
+64 bytes from 10.0.2.1: icmp_seq=4 ttl=62 time=0.053 ms
+64 bytes from 10.0.2.1: icmp_seq=5 ttl=62 time=0.055 ms
+64 bytes from 10.0.2.1: icmp_seq=6 ttl=62 time=0.396 ms
+
+--- 10.0.2.1 ping statistics ---
+10 packets transmitted, 4 received, 60% packet loss, time 9324ms
+rtt min/avg/max/mdev = 0.053/0.150/0.396/0.142 ms
+<shellId: 0 completed with exit code 0>
+
+$ rede r1 ip route
+10.0.1.0/24 dev r1-h1 proto kernel scope link src 10.0.1.254 
+10.0.2.0/24 via 10.0.12.2 dev r1-r2 
+10.0.12.0/24 dev r1-r2 proto kernel scope link src 10.0.12.1 
+10.0.13.0/24 dev r1-r3 proto kernel scope link src 10.0.13.1
+<shellId: 1 completed with exit code 0>
+
+$ rede r2 ip route
+10.0.1.0/24 via 10.0.12.1 dev r2-r1 
+10.0.2.0/24 dev r2-h2 proto kernel scope link src 10.0.2.254 
+10.0.12.0/24 dev r2-r1 proto kernel scope link src 10.0.12.2 
+10.0.23.0/24 dev r2-r3 proto kernel scope link src 10.0.23.2
+<shellId: 2 completed with exit code 0>
+
+$ rede r1 tc qdisc show
+qdisc noqueue 0: dev lo root refcnt 2 
+qdisc noqueue 0: dev r1-h1 root refcnt 2 
+qdisc netem 802d: dev r1-r2 root refcnt 9 limit 1000 loss 30% seed 1866683896437615825
+qdisc noqueue 0: dev r1-r3 root refcnt 2
+<shellId: 3 completed with exit code 0>
+
+$ rede r2 tc qdisc show
+qdisc noqueue 0: dev lo root refcnt 2 
+qdisc noqueue 0: dev r2-h2 root refcnt 2 
+qdisc netem 802e: dev r2-r1 root refcnt 9 limit 1000 loss 30% seed 5352408811432634714
+qdisc noqueue 0: dev r2-r3 root refcnt 2
+<shellId: 4 completed with exit code 0>
+
+$ rede r3 ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host proto kernel_lo 
+       valid_lft forever preferred_lft forever
+2: r3-r1@if4: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether f2:75:6d:6f:21:9a brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 10.0.13.3/24 brd 10.0.13.255 scope global r3-r1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::f075:6dff:fe6f:219a/64 scope link proto kernel_ll 
+       valid_lft forever preferred_lft forever
+3: r3-r2@if4: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether 52:a2:ac:0d:c2:fc brd ff:ff:ff:ff:ff:ff link-netnsid 1
+    inet 10.0.23.3/24 brd 10.0.23.255 scope global r3-r2
+       valid_lft forever preferred_lft forever
+    inet6 fe80::50a2:acff:fe0d:c2fc/64 scope link proto kernel_ll 
+       valid_lft forever preferred_lft forever
+<shellId: 5 completed with exit code 0>
+
+$ rede r1 ip route replace 10.0.2.0/24 via 10.0.13.3
+
+<shellId: 6 completed with exit code 0>
+
+$ rede h1 ping -c 10 10.0.2.1
+PING 10.0.2.1 (10.0.2.1) 56(84) bytes of data.
+64 bytes from 10.0.2.1: icmp_seq=1 ttl=62 time=0.098 ms
+64 bytes from 10.0.2.1: icmp_seq=2 ttl=62 time=0.255 ms
+64 bytes from 10.0.2.1: icmp_seq=3 ttl=62 time=0.063 ms
+64 bytes from 10.0.2.1: icmp_seq=4 ttl=62 time=0.060 ms
+64 bytes from 10.0.2.1: icmp_seq=5 ttl=62 time=0.148 ms
+64 bytes from 10.0.2.1: icmp_seq=6 ttl=62 time=0.129 ms
+64 bytes from 10.0.2.1: icmp_seq=8 ttl=62 time=0.117 ms
+64 bytes from 10.0.2.1: icmp_seq=9 ttl=62 time=0.076 ms
+64 bytes from 10.0.2.1: icmp_seq=10 ttl=62 time=0.046 ms
+
+--- 10.0.2.1 ping statistics ---
+10 packets transmitted, 9 received, 10% packet loss, time 9205ms
+rtt min/avg/max/mdev = 0.046/0.110/0.255/0.060 ms
+<shellId: 7 completed with exit code 0>
+
+$ rede r2 ip route replace 10.0.1.0/24 via 10.0.23.3
+
+<shellId: 8 completed with exit code 0>
+
+$ rede h1 ping -c 10 10.0.2.1
+PING 10.0.2.1 (10.0.2.1) 56(84) bytes of data.
+64 bytes from 10.0.2.1: icmp_seq=1 ttl=61 time=0.465 ms
+64 bytes from 10.0.2.1: icmp_seq=2 ttl=61 time=0.053 ms
+64 bytes from 10.0.2.1: icmp_seq=3 ttl=61 time=0.630 ms
+64 bytes from 10.0.2.1: icmp_seq=4 ttl=61 time=0.412 ms
+64 bytes from 10.0.2.1: icmp_seq=5 ttl=61 time=0.064 ms
+64 bytes from 10.0.2.1: icmp_seq=6 ttl=61 time=0.303 ms
+64 bytes from 10.0.2.1: icmp_seq=7 ttl=61 time=0.247 ms
+64 bytes from 10.0.2.1: icmp_seq=8 ttl=61 time=0.045 ms
+64 bytes from 10.0.2.1: icmp_seq=9 ttl=61 time=0.050 ms
+64 bytes from 10.0.2.1: icmp_seq=10 ttl=61 time=0.062 ms
+
+--- 10.0.2.1 ping statistics ---
+10 packets transmitted, 10 received, 0% packet loss, time 9481ms
+rtt min/avg/max/mdev = 0.045/0.233/0.630/0.201 ms
+<shellId: 9 completed with exit code 0>
+
+AGENTE: A causa era perda configurada de 30% nos dois sentidos do enlace r1–r2. Desviei o tráfego pelo caminho via r3:
+
+- `rede r1 ip route replace 10.0.2.0/24 via 10.0.13.3`
+- `rede r2 ip route replace 10.0.1.0/24 via 10.0.23.3`
+
+O ping final recebeu **10 de 10 pacotes (0% de perda)**.
+
